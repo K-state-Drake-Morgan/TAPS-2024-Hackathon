@@ -1,14 +1,8 @@
 [package]
 name = "TAPS Dashboard"
 version = "0.1.0"
+dist = "dist"
+public_url = "/"
 
-[[bin]]
-name = "TAPS Dashboard"
-path = "src/main.rs"
-
-[build]
-output_dir = "dist"  # Adjust if needed
-
-[serve]
-address = "0.0.0.0"
-port = 8000
+[clean]
+dist = "dist"
