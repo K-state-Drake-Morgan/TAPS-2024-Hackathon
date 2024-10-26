@@ -31,5 +31,8 @@ jobs:
       working-directory: ./dashboard
 
     - name: Run Dashboard
-      run: trunk serve
-      working-directory: ./dashboard
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_branch: gh-pages
+        publish_dir: dist
