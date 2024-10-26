@@ -19,6 +19,7 @@ fn App() -> Html {
     }
 }
 
+/// using yew to build the dashboard from html componets
 fn main() {
     yew::Renderer::<App>::new().render();
 }
