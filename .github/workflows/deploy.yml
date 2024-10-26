@@ -31,5 +31,5 @@ jobs:
       working-directory: ./dashboard
 
     - name: Run Dashboard
-      run: trunk run
+      run: trunk serve
       working-directory: ./dashboard
