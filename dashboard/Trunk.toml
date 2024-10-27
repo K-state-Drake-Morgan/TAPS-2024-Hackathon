@@ -2,7 +2,6 @@
 name = "TAPS Dashboard"
 version = "0.1.0"
 dist = "dist"
-public_url = "/"
 
-[clean]
-dist = "dist"
+[serve]
+port = "3000"
