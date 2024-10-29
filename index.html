@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <!-- data-trunk is just to tell trunk (the thing that is making the code run) to include those files instead of having them be html directoies -->
+        <link rel="stylesheet" href="/main-a3733f9cc6290ca3.css" integrity="sha384&#x2D;h0gHUsHtwO5b4oEqlinmqPeuCzM1HDyr7&#x2F;dtP7ZtjcJ1kLbtdnhUiMfa0UxlI6u5"/>
+        <link rel="icon" href="/farmer-d64e580292b9032e.ico" integrity="sha384&#x2D;Ln1SI0AoijrmeIe7WPqUJ5&#x2B;&#x2B;sJPXxMYXrGjElXrI0tCxMk&#x2F;V8r5apF5xAgjJztsH"/>
+        <title>Yew App</title>
+    <link rel="modulepreload" href="/dashboard-2e6b8d5d1ace8971.js" crossorigin=anonymous integrity="sha384-qtiheO5HMcaNk4sJJ/LZ39LUPMUwiJZs+i3CStp8HD+9DuKcJ60c9Gh6Hgg4ttGB"><link rel="preload" href="/dashboard-2e6b8d5d1ace8971_bg.wasm" crossorigin=anonymous integrity="sha384-Qv3dRSIK/iVCnuDG2IGebwDUfshMeMmG4yKxIrfP4a/IkOeR6xKDz2KtLZuie3Hd" as="fetch" type="application/wasm"></head>
+    <body>
+        <noscript>This dashboard <b class="important">REQUIRES</b> javascript to be enabled!</noscript>
+    
+<script type="module" nonce="KKE9Ia948FwRHzAxz7NOrA==">
+import init, * as bindings from '/dashboard-2e6b8d5d1ace8971.js';
+const wasm = await init('/dashboard-2e6b8d5d1ace8971_bg.wasm');
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script></body>
+</html>
