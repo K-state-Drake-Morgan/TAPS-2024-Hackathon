@@ -3,5 +3,8 @@ name = "TAPS Dashboard"
 version = "0.1.0"
 dist = "dist"
 
+[build]
+public_url = "/TAPS-2024-Hackathon"
+
 [serve]
 port = 3000
