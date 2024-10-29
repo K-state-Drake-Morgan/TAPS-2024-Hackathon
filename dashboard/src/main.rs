@@ -30,9 +30,10 @@ impl Component for Plot {
         match msg {
             PlotMessage::HelloWorld => {
             
-            let element : HtmlCanvasElement = self.canvas.cast().unwrap();
-                        
-            let rect = element.get_bounding_client_rect();
+            let element: HtmlCanvasElement = self.canvas.cast().unwrap();
+            let parent = element.parent_element().unwrap();
+            let rect = parent.get_bounding_client_rect();
+
             element.set_height(rect.height() as u32);
             element.set_width(rect.width() as u32);
 
