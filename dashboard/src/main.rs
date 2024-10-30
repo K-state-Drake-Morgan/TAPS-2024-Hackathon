@@ -1,143 +1,163 @@
+// Import necessary libraries for plotting, web canvas, and Yew framework
 use plotters::prelude::*;
 use plotters_canvas::CanvasBackend;
 use web_sys::HtmlCanvasElement;
 use yew::prelude::*;
+use gloo::console; // For logging messages to the browser console
 
+// Enum to define the different plot messages that can trigger a plot update
 pub enum PlotMessage {
     HelloWorld,
+    ByeWorld,
     None,
 }
 
-#[derive(Properties, PartialEq)]
-pub struct PlotProps {}
-
-pub struct Plot {
-    canvas: NodeRef,
+// Enum to handle messages in the App component
+pub enum Message {
+    UpdatePlot(PlotMessage), // Trigger an update to the plot based on the selected message
+    None
 }
 
-impl Component for Plot {
-    type Message = PlotMessage;
+// Main application structure containing a reference to the canvas
+pub struct App {
+    plot: NodeRef // NodeRef for accessing the canvas element
+}
 
-    fn create(ctx: &Context<Self>) -> Self {
-        ctx.link().send_message(PlotMessage::HelloWorld);
-        Plot {
-            canvas : NodeRef::default(),
-        } 
+// Implement the Component trait for the App struct
+impl Component for App {
+    type Message = Message; // Define the message type for component events
+    type Properties = (); // No properties are needed for this component
+
+    // Function to create the App component instance
+    fn create(_ctx: &Context<Self>) -> Self {
+        App {
+            plot: NodeRef::default() // Initialize NodeRef for the canvas
+        }
     }
 
-    // _ tecnically means that we don't use ctx at all, if you need it remove the _
+    // Function to handle updates based on incoming messages
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            PlotMessage::HelloWorld => {
-            
-            let element: HtmlCanvasElement = self.canvas.cast().unwrap();
-            let parent = element.parent_element().unwrap();
-            let rect = parent.get_bounding_client_rect();
+            Message::UpdatePlot(plot_message) => {
+                // Handle the specific plot messages to draw the graph
+                match plot_message {
+                    PlotMessage::HelloWorld => {
+                        // Log message to console for debugging
+                        console::log!("Hello!");
 
-            element.set_height(rect.height() as u32);
-            element.set_width(rect.width() as u32);
-
-            let backend = CanvasBackend::with_canvas_object(element).unwrap();
-            
-            let drawing_area = backend.into_drawing_area();
-            drawing_area.fill(&RGBColor(200,200,200)).unwrap();
+                        // Get the canvas element from the NodeRef
+                        let element: HtmlCanvasElement = self.plot.cast().unwrap();
+                        let parent = element.parent_element().unwrap();
                         
-            let mut chart = ChartBuilder::on(&drawing_area)
-                .caption("y=x^2", ("sans-serif", 14).into_font())
-                .margin(5)
-                .x_label_area_size(30)
-                .y_label_area_size(30)
-                .build_cartesian_2d(-1f32..1f32, -0.1f32..1f32).unwrap();
-            
-            chart.configure_mesh().draw().unwrap();
-            
-            chart
-                .draw_series(LineSeries::new(
-                    (-50..=50).map(|x| x as f32 / 50.0).map(|x| (x, x * x)),
-                    &RED,
-                )).unwrap()
-                .label("y = x^2")
-                .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &RED));
+                        // Set canvas dimensions based on the parent element's size
+                        let rect = parent.get_bounding_client_rect();
+                        element.set_height(rect.height() as u32);
+                        element.set_width(rect.width() as u32);
+
+                        // Initialize the backend for plotting using the canvas element
+                        let backend = CanvasBackend::with_canvas_object(element).unwrap();
+                        
+                        // Create a drawing area for the plot
+                        let drawing_area = backend.into_drawing_area();
+                        drawing_area.fill(&RGBColor(200, 200, 200)).unwrap(); // Fill background with light gray
+                                    
+                        // Build the chart with specific configurations
+                        let mut chart = ChartBuilder::on(&drawing_area)
+                            .caption("y=x^2", ("sans-serif", 14).into_font()) // Set title and font
+                            .margin(5) // Set margins for the chart
+                            .x_label_area_size(30) // Space for x-axis labels
+                            .y_label_area_size(30) // Space for y-axis labels
+                            .build_cartesian_2d(-1f32..1f32, -0.1f32..1f32).unwrap(); // Define the axis ranges
+                        
+                        // Configure and draw the mesh/grid of the chart
+                        chart.configure_mesh().draw().unwrap();
+                        
+                        // Draw the series for y = x^2
+                        chart.draw_series(LineSeries::new(
+                            (-50..=50).map(|x| x as f32 / 50.0).map(|x| (x, x * x)), // Calculate points
+                            &BLUE, // Color of the line
+                        )).unwrap()
+                        .label("y = x^2") // Label for the legend
+                        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &RED)); // Legend line element
+
+                    },
+                    PlotMessage::ByeWorld => {
+                        // Log message to console for debugging
+                        console::log!("Bye!");
+
+                        // Similar logic as HelloWorld, but for ByeWorld
+                        let element: HtmlCanvasElement = self.plot.cast().unwrap();
+                        let parent = element.parent_element().unwrap();
+                        let rect = parent.get_bounding_client_rect();
+                        
+                        element.set_height(rect.height() as u32);
+                        element.set_width(rect.width() as u32);
+
+                        let backend = CanvasBackend::with_canvas_object(element).unwrap();
+                        
+                        let drawing_area = backend.into_drawing_area();
+                        drawing_area.fill(&RGBColor(200, 200, 200)).unwrap();
+                                    
+                        let mut chart = ChartBuilder::on(&drawing_area)
+                            .caption("y=x^2", ("sans-serif", 14).into_font())
+                            .margin(5)
+                            .x_label_area_size(30)
+                            .y_label_area_size(30)
+                            .build_cartesian_2d(-1f32..1f32, -0.1f32..1f32).unwrap();
+                        
+                        chart.configure_mesh().draw().unwrap();
+                        
+                        // Draw the series for y = x^2 but with negative x-values
+                        chart.draw_series(LineSeries::new(
+                            (-50..=50).map(|x| -x as f32 / 50.0).map(|x| (x, x * x)), // Inverted x-values
+                            &RED, // Color of the line
+                        )).unwrap()
+                        .label("y = x^2") // Label for the legend
+                        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &RED)); // Legend line element
+
+                    },
+                    PlotMessage::None => {}, // No action for None message
+                }
+                true // Indicate that the state has changed
             },
-            _ => {},
-        } true
+            Message::None => false, // No action needed
+        }
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
-        html! (
-          <div>
-            <canvas ref = {self.canvas.clone()}/>
-          </div>
-        )
-    }
-    
-    type Properties = PlotProps;
-}
-
-#[function_component]
-fn App() -> Html {
-    html! {
-        <>
-            <Header />
-            <Body />
-            <Footer />
-        </>
-    }
-}
-
-#[function_component(Header)]
-fn header() -> Html {
-    html! {
-        <header>
-            <h1>{ "TAPS" }</h1>
-        </header>
-    }
-}
-
-#[function_component(Body)]
-fn body() -> Html {
-    html! {
-        <main>
-            <div class="sidebar">
-                <Sidebar />
-            </div>
-            <div class="info">
-                <Canvas />
-            </div>
-        </main>
+    // Function to define the view layout of the App component
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <>
+                <header>
+                    <h1>{ "TAPS" }</h1> // Main title of the application
+                </header>
+                <main>
+                    <div class="sidebar"> // Sidebar for buttons
+                        <ul>
+                            <li>
+                                // Button to update the plot to HelloWorld
+                                <button onclick={ctx.link().callback(|_| Message::UpdatePlot(PlotMessage::HelloWorld))}>{ "Hello World" }</button>
+                            </li>
+                            <li>
+                                // Button to update the plot to ByeWorld
+                                <button onclick={ctx.link().callback(|_| Message::UpdatePlot(PlotMessage::ByeWorld))}>{ "Bye World" }</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="information"> // Container for the canvas
+                        <canvas ref={self.plot.clone()} /> // Canvas element for plotting
+                    </div>
+                </main>
+                <footer>
+                    <p>{ "Footer Goes Here" }</p> // Placeholder for footer content
+                </footer>
+            </>
+        }
     }
 }
 
-#[function_component(Sidebar)]
-fn sidebar() -> Html {
-    html! {
-        <div class="sidebar-content">
-            <h2>{ "Sidebar" }</h2>
-            <ul>
-                <li>{ "Item 1" }</li>
-                <li>{ "Item 2" }</li>
-                <li>{ "Item 3" }</li>
-            </ul>
-        </div>
-    }
-}
-
-#[function_component(Canvas)]
-fn canvas() -> Html {
-    html! {
-        <Plot />
-    }
-}
-
-#[function_component(Footer)]
-fn footer() -> Html {
-    html! {
-        <footer>
-            <p>{ "Footer content goes here" }</p>
-        </footer>
-    }
-}
-
+// Entry point of the application
 fn main() {
+    // Render the App component in the Yew framework
     yew::Renderer::<App>::new().render();
 }
