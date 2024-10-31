@@ -1,9 +1,14 @@
+use std::io::Cursor;
+
 // Import necessary libraries for plotting, web canvas, and Yew framework
 use plotters::prelude::*;
 use plotters_canvas::CanvasBackend;
+use reqwest;
+use wasm_bindgen_futures;
 use web_sys::HtmlCanvasElement;
 use yew::prelude::*;
 use gloo::console; // For logging messages to the browser console
+use calamine::{open_workbook_auto_from_rs, RangeDeserializerBuilder, Reader}; // parse xlsx files
 
 // Enum to define the different plot messages that can trigger a plot update
 pub enum PlotMessage {
@@ -44,6 +49,8 @@ impl Component for App {
                     PlotMessage::HelloWorld => {
                         // Log message to console for debugging
                         console::log!("Hello!");
+
+                        wasm_bindgen_futures::spawn_local(async { let _ = fetch_data().await; });
 
                         // Get the canvas element from the NodeRef
                         let element: HtmlCanvasElement = self.plot.cast().unwrap();
@@ -149,11 +156,37 @@ impl Component for App {
                     </div>
                 </main>
                 <footer>
-                    <p>{ "Footer Goes Here" }</p> // Placeholder for footer content
+                    <p>{ "Footer" }</p> // Placeholder for footer content
                 </footer>
             </>
         }
     }
+}
+
+async fn fetch_data() -> Result<Vec<(String, f64)>, String> {
+    console::log!("Fetching DATA!");
+    let file = reqwest::get("http://127.0.0.1:3000/TAPS-2024-Hackathon/data/sensor_data/24 KSU TAPS AquaSpy.xlsx").await.unwrap();
+    let bytes = file.bytes().await.unwrap();
+    let bytes_wrapper = Cursor::new(bytes);
+
+    console::log!("Data Sharing to workbook");
+    let mut workbook = open_workbook_auto_from_rs(bytes_wrapper).map_err(|e| e.to_string())?;
+    let range = workbook.worksheet_range("Team #12 Data").expect("Sheet not found!");
+    
+    console::log!("Deserializing");
+    let deserializer = RangeDeserializerBuilder::new().from_range(&range).map_err(|e| e.to_string())?;
+    let mut data = Vec::new();
+
+    console::log!("Resulting!");
+    for result in deserializer {
+        let (name, value): (String, f64) = result.map_err(|e| e.to_string()).unwrap_or(("BAD".to_string(), 0.0));
+        data.push((name, value));
+    }
+
+    console::log!("Printing data!");
+    console::log!(format!("{:?}", data));
+
+    Ok(data)
 }
 
 // Entry point of the application
