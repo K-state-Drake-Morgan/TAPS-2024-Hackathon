@@ -46,7 +46,7 @@ jobs:
           git checkout gh-pages
 
           # Move data from the temporary directory to the gh-pages branch
-          cp temp-data/* data/
+          cp -r temp-data/* data/
 
           # Clean up
           rmdir temp-data
