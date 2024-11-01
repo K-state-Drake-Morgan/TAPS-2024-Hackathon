@@ -31,3 +31,29 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: ./dashboard/dist
+
+      - name: Move data directory to gh-pages branch
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          
+          # Create a temporary directory to hold the data
+          mkdir temp-data
+          mv data/* temp-data/
+          
+          # Checkout the gh-pages branch
+          git fetch origin gh-pages:gh-pages
+          git checkout gh-pages
+
+          # Move data from the temporary directory to the gh-pages branch
+          mv temp-data/* data/
+
+          # Clean up
+          rmdir temp-data
+
+          # Stage changes
+          git add data/
+
+          # Commit and push changes
+          git commit -m "Deploy data directory from main branch"
+          git push origin gh-pages
