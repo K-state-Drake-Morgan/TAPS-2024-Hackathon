@@ -39,7 +39,7 @@ jobs:
           
           # Create a temporary directory to hold the data
           mkdir temp-data
-          mv data/* temp-data/
+          mv dashboard/data/* temp-data/
           
           # Checkout the gh-pages branch
           git fetch origin gh-pages:gh-pages
