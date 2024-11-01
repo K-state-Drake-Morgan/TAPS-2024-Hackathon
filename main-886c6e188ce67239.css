@@ -47,6 +47,7 @@ canvas {
 
 div.sidebar {
     height: 100%;
+    overflow: scroll;
 }
 
 b.important {
