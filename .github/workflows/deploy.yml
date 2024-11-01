@@ -49,7 +49,7 @@ jobs:
           cp -r temp-data/* data/
 
           # Clean up
-          rmdir temp-data
+          rm -rf temp-data
 
           # Stage changes
           git add data/
