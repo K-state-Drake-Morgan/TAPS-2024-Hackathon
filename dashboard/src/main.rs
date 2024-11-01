@@ -1,4 +1,4 @@
-use std::{io::Cursor, sync::{Arc, Mutex}};
+use std::io::Cursor;
 
 // Import necessary libraries for plotting, web canvas, and Yew framework
 use plotters::prelude::*;
@@ -7,7 +7,7 @@ use reqwest;
 use web_sys::HtmlCanvasElement;
 use yew::prelude::*;
 use gloo::console; // For logging messages to the browser console
-use calamine::{open_workbook_auto_from_rs, DataType, Reader}; // parse xlsx files
+use calamine::{open_workbook_auto_from_rs, Reader}; // parse xlsx files
 
 // Enum to define the different plot messages that can trigger a plot update
 pub enum PlotMessage {
@@ -19,13 +19,13 @@ pub enum PlotMessage {
 // Enum to handle messages in the App component
 pub enum Message {
     UpdatePlot(PlotMessage), // Trigger an update to the plot based on the selected message
+    MakePlot(Vec<(f32, f32)>),
     None
 }
 
 // Main application structure containing a reference to the canvas
 pub struct App {
     plot: NodeRef, // NodeRef for accessing the canvas element
-    plot_data: Vec<(f32, f32)>
 }
 
 // Implement the Component trait for the App struct
@@ -37,12 +37,11 @@ impl Component for App {
     fn create(_ctx: &Context<Self>) -> Self {
         App {
             plot: NodeRef::default(), // Initialize NodeRef for the canvas
-            plot_data: Vec::new()
         }
     }
 
     // Function to handle updates based on incoming messages
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Message::UpdatePlot(plot_message) => {
                 // Handle the specific plot messages to draw the graph
@@ -51,14 +50,16 @@ impl Component for App {
                         // Log message to console for debugging
                         console::log!("Hello!");
 
-                        let app = Arc::new(Mutex::new(App{plot: NodeRef::default(), plot_data: Vec::new()}));
-                        let app_f = Arc::clone(&app);
-
-                        wasm_bindgen_futures::spawn_local( async move {
-                            App::fetch_data(app_f.lock().unwrap()).await;
-                        });
-
-                        // Get the canvas element from the NodeRef
+                        ctx.link().send_future(App::fetch_data());
+                    },
+                    PlotMessage::ByeWorld => {},
+                    PlotMessage::None => {}, // No action for None message
+                }
+                true // Indicate that the state has changed
+            },
+            Message::None => false,
+            Message::MakePlot(vec) => {
+                // Get the canvas element from the NodeRef
                         let element: HtmlCanvasElement = self.plot.cast().unwrap();
                         let parent = element.parent_element().unwrap();
                         
@@ -74,15 +75,15 @@ impl Component for App {
                         let drawing_area = backend.into_drawing_area();
                         drawing_area.fill(&RGBColor(200, 200, 200)).unwrap(); // Fill background with light gray
                         
-                        let min_x = app.lock().unwrap().plot_data.clone().into_iter().min_by_key(|x| x.0 as u64).unwrap().0;
-                        let max_x = app.lock().unwrap().plot_data.clone().into_iter().max_by_key(|x| x.0 as u64).unwrap().0;
+                        let min_x = vec.clone().into_iter().min_by_key(|x| x.0 as u64).unwrap_or((0.0, 0.0)).0;
+                        let max_x = vec.clone().into_iter().max_by_key(|x| x.0 as u64).unwrap_or((0.0, 0.0)).0;
 
-                        let min_y = app.lock().unwrap().plot_data.clone().into_iter().min_by_key(|x| x.1 as u64).unwrap().1;
-                        let max_y = app.lock().unwrap().plot_data.clone().into_iter().max_by_key(|x| x.1 as u64).unwrap().1;
+                        let min_y = vec.clone().into_iter().min_by_key(|x| x.1 as u64).unwrap_or((0.0, 0.0)).1;
+                        let max_y = vec.clone().into_iter().max_by_key(|x| x.1 as u64).unwrap_or((0.0, 0.0)).1;
 
                         // Build the chart with specific configurations
                         let mut chart = ChartBuilder::on(&drawing_area)
-                            .caption("y=x^2", ("sans-serif", 14).into_font()) // Set title and font
+                            .caption("PLease help... it's past a resembole time to be awake", ("sans-serif", 14).into_font()) // Set title and font
                             .margin(5) // Set margins for the chart
                             .x_label_area_size(30) // Space for x-axis labels
                             .y_label_area_size(30) // Space for y-axis labels
@@ -92,20 +93,22 @@ impl Component for App {
                         chart.configure_mesh().draw().unwrap();
                         
                         // Draw the series for y = x^2
-                        chart.draw_series(LineSeries::new(
-                            app.lock().unwrap().plot_data.clone(), // Calculate points
-                            &BLUE, // Color of the line
+                        chart.draw_series(AreaSeries::new(
+                            vec.clone(),
+                            0.0,
+                            ShapeStyle{
+                                color: BLUE.mix(0.6),
+                                filled: false,
+                                stroke_width: 2,
+                            }
                         )).unwrap()
-                        .label("y = x^2") // Label for the legend
+                        //.label("y = x^2") // Label for the legend
                         .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &RED)); // Legend line element
 
-                    },
-                    PlotMessage::ByeWorld => {},
-                    PlotMessage::None => {}, // No action for None message
-                }
-                true // Indicate that the state has changed
-            },
-            Message::None => false, // No action needed
+                        drawing_area.present().unwrap();
+
+                        true
+            }, // No action needed
         }
     }
 
@@ -142,7 +145,7 @@ impl Component for App {
 }
 
 impl App {
-    async fn fetch_data(mut state: std::sync::MutexGuard<'_, App>) {
+    async fn fetch_data() -> Message {
         console::log!("Fetching data...");
 
         // Fetch the file
@@ -191,7 +194,7 @@ impl App {
         console::log!("Data retrieved successfully!");
         console::log!(format!("{:?}", data));
 
-        state.plot_data = data;
+        Message::MakePlot(data)
     }
 }
 
